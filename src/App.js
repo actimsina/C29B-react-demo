@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import axios from 'axios'
 import Note from "./components/Note";
+import noteService from "./services/noteService";
 
 function App() {
 
@@ -9,7 +10,7 @@ function App() {
   const [showAll, setShowAll] = useState(true)
 
   const getNotes = () => {
-    axios.get('http://localhost:3001/notes')
+    noteService.getAllNotes()
       .then(response => {
         console.log(response.data)
         setNotes(response.data)
@@ -37,7 +38,7 @@ function App() {
     }
 
     if (newNote !== '') {
-      axios.post('http://localhost:3001/notes', note)
+      noteService.createNote(note)
         .then(response => {
           setNotes(notes.concat(response.data))
           setNewNote('')
@@ -48,18 +49,19 @@ function App() {
 
   const handleDelete = (id) => {
     alert(id)
-    axios.delete(`http://localhost:3001/notes/${id}`)
+    noteService.deleteNote(id)
       .then(response => {
         setNotes(notes.filter(n => n.id !== id))
       }).catch(err => console.log(err))
   }
 
   const handleImportance = (id) => {
-    alert(id)
-    //? find the note with id
-    // update the note and change importance
-    // put request to the server with the updated note
-    // update state with the updated notes
+    let targetNote = notes.find(n => n.id === id)
+    targetNote = { ...targetNote, important: !targetNote.important }
+    noteService.updateNote(id, targetNote)
+      .then(response => {
+        setNotes(notes.map(n => n.id === id ? response.data : n))
+      }).catch(err => console.log(err))
   }
 
   return (
